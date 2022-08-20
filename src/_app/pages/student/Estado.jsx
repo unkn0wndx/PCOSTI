@@ -1,53 +1,39 @@
-import { Card } from "@mui/material"
-import * as React from 'react';
-import Box from '@mui/material/Box';
-import CardActions from '@mui/material/CardActions';
-import CardContent from '@mui/material/CardContent';
-import Button from '@mui/material/Button';
-import Typography from '@mui/material/Typography';
+import { useState } from "react"
 
 export const Estado = () => {
 
-  const bull = (
-    <Box
-      component="span"
-      sx={{ display: 'inline-block', mx: '2px', transform: 'scale(0.8)' }}
-    >
-      •
-    </Box>
-  );
+  const [data, setData] = useState('')
 
-  const card = (
-    <React.Fragment>
-      <CardContent>
-        <Typography sx={{ fontSize: 14 }} color="text.secondary" gutterBottom>
-          Word of the Day
-        </Typography>
-        <Typography variant="h5" component="div">
-          be{bull}nev{bull}o{bull}lent
-        </Typography>
-        <Typography sx={{ mb: 1.5 }} color="text.secondary">
-          adjective
-        </Typography>
-        <Typography variant="body2">
-          well meaning and kindly.
-          <br />
-          {'"a benevolent smile"'}
-        </Typography>
-      </CardContent>
-      <CardActions>
-        <Button size="small">Learn More</Button>
-      </CardActions>
-    </React.Fragment>
-  );
+  function guardarArchivo(e) {
+    var file = e.target.files[0] //the file
+    var reader = new FileReader() //this for convert to Base64 
+    reader.readAsDataURL(e.target.files[0]) //start conversion...
+    reader.onload = function (e) { //.. once finished..
+      var rawLog = reader.result.split(',')[1]; //extract only thee file data part
+      var dataSend = { dataReq: { data: rawLog, name: file.name, type: file.type }, fname: "uploadFilesToGoogleDrive" }; //preapre info to send to API
+      fetch('https://script.google.com/macros/s/AKfycbxKgctsO8FsgaW8L4QGQG8WPlIY2c3a4j426oQ9wquzRSA4pcZBC3-sdnY96k244qSJ/exec', //your AppsScript URL
+        { method: "POST", body: JSON.stringify(dataSend) }) //send to Api
+        .then(res => res.json()).then((a) => {
+          setData(a);
+          console.log(a, 'Exito') //See response
+        }).catch(e => console.log(e, 'Error')) // Or Error in console
+    }
+  }
+
 
   return (
     <>
-      <h1>Estado</h1>
+      <h1>Subir Archivo A Google Drive</h1>
       <hr />
-      <Box sx={{ minWidth: 275 }} className="col-6">
-        <Card variant="outlined">{card}</Card>
-      </Box>
+      <input type="file" accept=".pdf,.doc,.docx" id="customFile" onChange={(e) => guardarArchivo(e)} />
+      {
+        (data == '')
+          ? <></>
+          : <a href={data.url} target="_blank">{data.url}</a>
+      }
+
     </>
   )
 }
+
+
